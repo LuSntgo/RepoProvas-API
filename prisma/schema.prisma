@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  password String
+
+  @@map("users")
+}
+
+model Category {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  tests Test[]
+  @@map("categories")
+}
+
+model Test {
+  id     Int    @id @default(autoincrement())
+  name   String @unique
+  PdfUrl String
+
+  category            Category          @relation(fields: [categoryId], references: [id])
+  categoryId          Int               @unique
+  teachersDiscipline  TeacherDiscipline @relation(fields: [teacherDisciplineId], references: [id])
+  teacherDisciplineId Int               @unique
+
+  @@map("tests")
+}
+
+model Teacher {
+  id                 Int                 @id @default(autoincrement())
+  name               String              @unique
+  teacherDisciplines TeacherDiscipline[]
+
+  @@map("teachers")
+}
+
+model TeacherDiscipline {
+  id           Int    @id @default(autoincrement())
+  teacherId    Int
+  disciplineId Int
+  teacher Teacher @relation(fields: [teacherId], references: [id])
+  discipline Discipline @relation(fields: [disciplineId], references: [id])
+
+  tests        Test[]
+  @@map("teachersDisciplines")
+}
+
+model Discipline {
+  id     Int    @id @default(autoincrement())
+  name   String @unique
+  term   Term   @relation(fields: [termId], references: [id])
+  termId Int
+
+  teachersDisciplines TeacherDiscipline[]
+  @@map("disciplines")
+}
+
+model Term {
+  id         Int          @id @default(autoincrement())
+  number     Int          @unique
+  discipline Discipline[]
+
+  @@map("terms")
+}
