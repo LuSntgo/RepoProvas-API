@@ -5,6 +5,9 @@ import { validateTokenMiddleware } from "../middlewares/validateTokenMiddleware.
 
 const examRouter = Router();
 
-examRouter.get("/get-exam"), validateTokenMiddleware, disciplineController.getByDisciplines;
+examRouter.get("/exams", validateTokenMiddleware, disciplineController.getByDisciplines);
+examRouter.get("/exams-terms", disciplineController.getByTerms);
+examRouter.get("/exams-category", disciplineController.getByCategory);
+examRouter.get("/exams-all", disciplineController.getAllTests);
 
 export default examRouter;
