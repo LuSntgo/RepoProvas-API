@@ -19,6 +19,13 @@ async function insert(createUserData: CreateUserData) {
   await userRepository.insert({ ...createUserData, password: hashedPassword });
 }
 
+async function findById(id: number) {
+  const user = await userRepository.findById(id);
+  if (!user) throw { type: "not_found" };
+
+  delete user.password;
+  return user;
+}
 
 
 async function signIn({ email, password }: CreateUserData) {
@@ -35,6 +42,7 @@ async function signIn({ email, password }: CreateUserData) {
   
   export default {
     insert,
-    signIn
+    signIn,
+    findById
   };
   
