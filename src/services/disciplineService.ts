@@ -1,25 +1,18 @@
 import * as examRepository from '../repositories/examRepository.js'
 
-export async function getDisciplines() {
-    const disciplines = await examRepository.findAllByDiscipline()
-    return disciplines
-}
-
-export async function getTests() {
-
-    const allTests = await examRepository.getAllTests()
-  
-    return allTests
-  
+interface Filter {
+    groupBy: "disciplines" | "teachers";
   }
   
-
-export async function getAllTerms() {
-    const terms = await examRepository.findDisciplineByTerms()
-    return terms
-}
-
-export async function getAllCategories() {
-    const category = await examRepository.findTestsByCategory()
-    return category
-}
+  async function find(filter: Filter) {
+    if (filter.groupBy === "disciplines") {
+      return examRepository.getTestsByDisciplines();
+    } else if (filter.groupBy === "teachers") {
+      return examRepository.getTestsByTeachers();
+    }
+  }
+  
+  export default {
+    find,
+  };
+  

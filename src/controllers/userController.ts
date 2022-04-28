@@ -1,24 +1,23 @@
 import { Request, Response } from "express";
-import userService, { CreateUserData } from "../services/userService.js";
+import userService from "../services/userService.js";
 
-interface SignUpUser {
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
+async function signUp(req: Request, res: Response) {
+  const user = req.body;
 
-export async function signUp(req: Request, res: Response) {
-  const user: SignUpUser = req.body;
-  delete user.confirmPassword;
-  await userService.insert(user);
+  await userService.signUp(user);
 
   res.sendStatus(201);
 }
 
-export async function signIn(req: Request, res: Response) {
-  const user: CreateUserData = req.body;
+async function signIn(req: Request, res: Response) {
+  const user = req.body;
 
   const token = await userService.signIn(user);
 
-  res.send(token);
+  res.send({ token });
 }
+
+export default {
+  signUp,
+  signIn,
+};

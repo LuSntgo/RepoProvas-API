@@ -1,48 +1,53 @@
 import { User } from "@prisma/client";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
-// import * as errorsUtils from '../utils/errorsUtils.js';
+import {
+  conflictError,
+  notFoundError,
+  unauthorizedError,
+} from "../utils/errorUtils.js";
 import jwt from "jsonwebtoken";
 import userRepository from "../repositories/userRepository.js";
 dotenv.config();
 
 export type CreateUserData = Omit<User, "id">;
-async function insert(createUserData: CreateUserData) {
-  const existingUser = await userRepository.findByEmail(createUserData.email);
-  if (existingUser)
-    throw {
-      type: "conflict",
-      message: "Users must have unique email addresses.",
-    };
 
-  const hashedPassword = bcrypt.hashSync(createUserData.password, 10);
+async function signUp(createUserData: CreateUserData) {
+  const existingUser = await userRepository.findByEmail(createUserData.email);
+  if (existingUser) throw conflictError("Email must be unique");
+
+  const hashedPassword = bcrypt.hashSync(createUserData.password, 12);
+
   await userRepository.insert({ ...createUserData, password: hashedPassword });
+}
+
+async function signIn(loginData: CreateUserData) {
+  const user = await getUserOrFail(loginData);
+
+  const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET);
+
+  return token;
 }
 
 async function findById(id: number) {
   const user = await userRepository.findById(id);
-  if (!user) throw { type: "not_found" };
+  if (!user) throw notFoundError("User not found");
 
-  delete user.password;
   return user;
 }
 
+async function getUserOrFail(loginData: CreateUserData) {
+  const user = await userRepository.findByEmail(loginData.email);
+  if (!user) throw unauthorizedError("Invalid credentials");
 
-async function signIn({ email, password }: CreateUserData) {
-    const user = await userRepository.findByEmail(email);
-    if (!user) throw { type: "unauthorized", message: "Invalid credentials" };
-  
-    const isPasswordValid = bcrypt.compareSync(password, user.password);
-    if (!isPasswordValid)
-      throw { type: "unauthorized", message: "Invalid credentials" };
-  
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET);
-    return token;
-  }
-  
-  export default {
-    insert,
-    signIn,
-    findById
-  };
-  
+  const isPasswordValid = bcrypt.compareSync(loginData.password, user.password);
+  if (!isPasswordValid) throw unauthorizedError("Invalid credentials");
+
+  return user;
+}
+
+export default {
+  signUp,
+  signIn,
+  findById,
+};

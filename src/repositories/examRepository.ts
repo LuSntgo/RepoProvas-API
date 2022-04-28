@@ -1,15 +1,11 @@
 import { prisma } from "../database.js";
 
-export async function findAllByDiscipline() {
-  const exam = await prisma.term.findMany({
-    select: {
-      id: true,
-      number: true,
-      discipline: {
-        select: {
-          id: true,
-          name: true,
-          teachersDisciplines: {
+async function getTestsByDisciplines() {
+  return prisma.term.findMany({
+    include: {
+      disciplines: {
+        include: {
+          teacherDisciplines: {
             include: {
               teacher: true,
               tests: {
@@ -23,50 +19,23 @@ export async function findAllByDiscipline() {
       },
     },
   });
-  return exam;
 }
 
-export async function getAllTests() {
-
-  const data = await prisma.test.findMany(
-  )
-  return data
-}
-
-
-export async function findDisciplineByTerms() {
-const terms = await prisma.term.findMany({
-  select: {
-    id:true,
-    number: true,
-    discipline: {
-      select: {
-        id: true,
-        name: true,
-        teachersDisciplines: true
-      }
-    }
-  }
-})
-return terms
-}
-
-export async function findTestsByCategory() {
-  const tests = await prisma.category.findMany({
-select:{
-  id:true,
-  name: true,
-  tests: {
+async function getTestsByTeachers() {
+  return prisma.teacherDiscipline.findMany({
     include: {
-      teachersDiscipline: {
+      teacher: true,
+      discipline: true,
+      tests: {
         include: {
-          teacher: true
-        }
-      }
-    }
-  }
+          category: true,
+        },
+      },
+    },
+  });
 }
 
-  })
-  return tests
-}
+export {
+  getTestsByDisciplines,
+  getTestsByTeachers,
+};
